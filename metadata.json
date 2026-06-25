@@ -1,0 +1,6 @@
+{
+  "name": "Tarik Bhai AI",
+  "description": "The Ultimate AI Operating System powered by GodMode Architecture.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
