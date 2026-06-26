@@ -47,20 +47,20 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </button>
         </div>
 
-      <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-accent text-primary font-semibold hover:bg-accent/90 transition-colors mb-6 shadow-[0_0_15px_rgba(255,213,79,0.2)]">
-        <Plus size={16} />
-        <span className="text-sm">New Chat</span>
+      <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-cyan-400 text-primary font-bold hover:bg-cyan-300 transition-colors mb-6 shadow-[0_0_20px_rgba(34,211,238,0.3)]">
+        <Plus size={18} />
+        <span className="text-sm tracking-wide">New Session</span>
       </button>
 
       <div className="flex-1 space-y-1 overflow-y-auto pr-1">
-        <div className="text-[10px] font-semibold text-text-dim/50 uppercase tracking-wider mb-3 px-2">Recent</div>
+        <div className="text-[10px] font-bold text-cyan-400/50 uppercase tracking-widest mb-3 px-2">Active Protocols</div>
         
-        <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/10 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] transition-all duration-300 group relative">
-          <MessageSquare size={16} className="text-accent" />
-          <span className="text-sm font-medium truncate">General Intelligence</span>
+        <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/10 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] transition-all duration-300 group relative backdrop-blur-sm">
+          <MessageSquare size={16} className="text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+          <span className="text-sm font-medium truncate">Master Core</span>
           <motion.div 
             layoutId="active-indicator"
-            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-accent rounded-r-full"
+            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-cyan-400 rounded-r-full shadow-[0_0_10px_rgba(34,211,238,0.8)]"
           />
         </button>
       </div>

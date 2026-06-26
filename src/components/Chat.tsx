@@ -213,14 +213,14 @@ export function Chat() {
                 className={`flex gap-3 md:gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {msg.role === 'assistant' && (
-                  <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-card border border-accent/20 flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(255,213,79,0.2)] mt-1">
-                    <Sparkles size={14} className="text-accent" />
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-card border border-cyan-500/30 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(34,211,238,0.2)] mt-1 animate-pulse-glow">
+                    <Bot size={18} className="text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
                   </div>
                 )}
                 
-                <div className={`max-w-[88%] md:max-w-[75%] rounded-2xl p-3 md:p-4 ${
+                <div className={`max-w-[88%] md:max-w-[80%] rounded-2xl p-4 md:p-5 ${
                   msg.role === 'user' 
-                    ? 'bg-white/10 border border-white/10 text-white rounded-tr-sm shadow-[0_4px_20px_rgba(0,0,0,0.2)]' 
+                    ? 'bg-gradient-to-br from-white/10 to-white/5 border border-white/10 text-white rounded-tr-sm shadow-xl backdrop-blur-md' 
                     : 'bg-transparent text-gray-200'
                 }`}>
                   <div className="leading-relaxed text-sm md:text-base prose prose-invert max-w-none">
@@ -229,8 +229,8 @@ export function Chat() {
                 </div>
                 
                 {msg.role === 'user' && (
-                  <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-gradient-to-br from-white/20 to-white/5 border border-white/10 flex items-center justify-center shrink-0 mt-1">
-                    <User size={14} className="text-white" />
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-white/20 to-white/5 border border-white/10 flex items-center justify-center shrink-0 mt-1 shadow-lg backdrop-blur-md">
+                    <User size={18} className="text-white" />
                   </div>
                 )}
               </motion.div>
@@ -242,21 +242,21 @@ export function Chat() {
                 animate={{ opacity: 1, y: 0 }}
                 className="flex gap-3 md:gap-4 justify-start"
               >
-                <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-card border border-accent-secondary/30 flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(0,217,255,0.2)] mt-1">
-                  <Bot size={14} className="text-accent-secondary" />
+                <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-card border border-cyan-500/30 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,217,255,0.2)] mt-1 animate-pulse-glow">
+                  <Bot size={18} className="text-cyan-400" />
                 </div>
-                <div className="flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-black/40 border border-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.2)] text-sm text-cyan-400 font-mono relative overflow-hidden group">
+                <div className="flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-black/40 border border-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.2)] text-sm text-cyan-400 font-mono relative overflow-hidden group backdrop-blur-md">
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent -translate-x-full animate-[shimmer_1s_infinite]" />
                   <span className="flex items-center gap-3 relative z-10 font-bold tracking-wider uppercase text-[11px] md:text-xs">
                      <div className="relative flex h-3 w-3">
                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                       <span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+                       <span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-500 shadow-[0_0_8px_#22d3ee]"></span>
                      </div>
                      {progressState}
                      <span className="flex gap-1 ml-1">
-                        <span className="w-1.5 h-1.5 bg-cyan-400/80 rounded-full animate-bounce" style={{ animationDelay: '0ms', animationDuration: '600ms' }}></span>
-                        <span className="w-1.5 h-1.5 bg-cyan-400/80 rounded-full animate-bounce" style={{ animationDelay: '150ms', animationDuration: '600ms' }}></span>
-                        <span className="w-1.5 h-1.5 bg-cyan-400/80 rounded-full animate-bounce" style={{ animationDelay: '300ms', animationDuration: '600ms' }}></span>
+                        <span className="w-1.5 h-1.5 bg-cyan-400/80 rounded-full animate-bounce shadow-[0_0_5px_#22d3ee]" style={{ animationDelay: '0ms', animationDuration: '600ms' }}></span>
+                        <span className="w-1.5 h-1.5 bg-cyan-400/80 rounded-full animate-bounce shadow-[0_0_5px_#22d3ee]" style={{ animationDelay: '150ms', animationDuration: '600ms' }}></span>
+                        <span className="w-1.5 h-1.5 bg-cyan-400/80 rounded-full animate-bounce shadow-[0_0_5px_#22d3ee]" style={{ animationDelay: '300ms', animationDuration: '600ms' }}></span>
                      </span>
                   </span>
                 </div>
@@ -270,7 +270,7 @@ export function Chat() {
       {/* Input Area */}
       <div className="absolute bottom-0 left-0 w-full p-3 md:p-6 z-20 bg-gradient-to-t from-primary via-primary/90 to-transparent pt-12 pb-4 md:pb-8 pointer-events-none">
         <div className="max-w-4xl mx-auto relative pointer-events-auto">
-          <div className="glass-panel rounded-3xl p-1.5 md:p-2 flex flex-col gap-1 md:gap-2 focus-within:border-accent/50 focus-within:shadow-[0_0_40px_rgba(255,213,79,0.15)] shadow-2xl transition-all duration-300">
+          <div className="glass-panel rounded-3xl p-1.5 md:p-2 flex flex-col gap-1 md:gap-2 focus-within:border-cyan-400/50 focus-within:shadow-[0_0_40px_rgba(34,211,238,0.25)] shadow-2xl transition-all duration-300">
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -281,11 +281,11 @@ export function Chat() {
                 }
               }}
               placeholder="Ask Tarik Bhai anything..."
-              className="w-full bg-transparent border-none resize-none p-2 md:p-3 text-white placeholder-text-dim/70 focus:outline-none min-h-[44px] md:min-h-[50px] max-h-[150px] md:max-h-[200px] text-sm md:text-base"
+              className="w-full bg-transparent border-none resize-none p-3 md:p-4 text-white placeholder-cyan-100/30 focus:outline-none min-h-[50px] md:min-h-[60px] max-h-[150px] md:max-h-[200px] text-sm md:text-base font-medium"
               rows={1}
             />
             
-            <div className="flex items-center justify-between px-1 md:px-2 pb-1">
+            <div className="flex items-center justify-between px-2 pb-2">
               <div className="flex items-center gap-0.5 md:gap-1">
                 {/* Removed Attachment and Auto-Route per user request */}
               </div>
@@ -294,9 +294,9 @@ export function Chat() {
                 <button 
                   onClick={handleSend}
                   disabled={!input.trim() || isTyping}
-                  className="p-1.5 md:p-2 rounded-lg bg-white/10 text-white hover:bg-accent hover:text-black disabled:opacity-50 disabled:hover:bg-white/10 disabled:hover:text-white transition-all"
+                  className="p-2 md:p-3 rounded-xl bg-cyan-500/20 text-cyan-400 hover:bg-cyan-400 hover:text-black disabled:opacity-30 disabled:hover:bg-cyan-500/20 disabled:hover:text-cyan-400 transition-all border border-cyan-500/30 shadow-[0_0_15px_rgba(34,211,238,0.2)] disabled:shadow-none cursor-pointer"
                 >
-                  <Send size={16} className={`md:w-[18px] md:h-[18px] ${input.trim() ? "translate-x-0.5 -translate-y-0.5" : ""}`} />
+                  <Send size={18} className={`md:w-[20px] md:h-[20px] ${input.trim() ? "translate-x-0.5 -translate-y-0.5" : ""}`} />
                 </button>
               </div>
             </div>
