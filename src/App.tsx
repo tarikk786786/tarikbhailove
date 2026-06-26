@@ -1,32 +1,133 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Send, User, Bot, Loader2 } from 'lucide-react';
+import { Send, Loader2 } from 'lucide-react';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
 }
 
+// ── Star field generator ──────────────────────────────────────────────────
+function StarField() {
+  const stars = Array.from({ length: 80 }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    size: Math.random() * 2 + 0.5,
+    dur: Math.random() * 4 + 2,
+    delay: Math.random() * 5,
+  }));
+
+  return (
+    <div className="stars">
+      {stars.map(s => (
+        <div
+          key={s.id}
+          className="star"
+          style={{
+            left: `${s.x}%`,
+            top: `${s.y}%`,
+            width: `${s.size}px`,
+            height: `${s.size}px`,
+            '--dur': `${s.dur}s`,
+            '--delay': `-${s.delay}s`,
+          } as React.CSSProperties}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ── Suggested prompts ─────────────────────────────────────────────────────
+const SUGGESTIONS = [
+  '🚀 Explain quantum computing',
+  '💡 Business idea generator',
+  '🔥 Best coding practices',
+  '🌍 World history summary',
+  '🧠 How does AI work?',
+  '💻 Build a React app',
+];
+
+// ── Welcome Screen ────────────────────────────────────────────────────────
+function WelcomeScreen({ onSuggestion }: { onSuggestion: (s: string) => void }) {
+  return (
+    <div className="welcome-screen">
+      {/* Avatar */}
+      <div className="welcome-avatar">
+        <div className="avatar-ring" />
+        <div className="avatar-inner">🤖</div>
+      </div>
+
+      {/* Title */}
+      <h1 className="welcome-title">Tarik Bhai AI</h1>
+
+      {/* Subtitle */}
+      <p className="welcome-subtitle">Beyond Space • Beyond Time</p>
+
+      {/* Tagline */}
+      <p className="welcome-tagline">
+        Your <span>Ultimate Digital Mentor</span> — powered by cutting-edge AI.
+        Ask me anything across science, tech, business, coding, history or life.
+        I'll deliver <span>deeply researched, exhaustive answers</span> with the warmth of a trusted guide.
+      </p>
+
+      {/* Quick-start chips */}
+      <div className="welcome-chips">
+        {SUGGESTIONS.map((s) => (
+          <button
+            key={s}
+            className="chip"
+            onClick={() => onSuggestion(s.replace(/^[^\s]+\s/, ''))}
+          >
+            {s}
+          </button>
+        ))}
+      </div>
+
+      {/* Mini stats */}
+      <div className="welcome-stats">
+        {[
+          { n: '∞', label: 'Knowledge' },
+          { n: '24/7', label: 'Available' },
+          { n: '100+', label: 'Topics' },
+        ].map(({ n, label }) => (
+          <div key={label} className="stat-item">
+            <div className="stat-number">{n}</div>
+            <div className="stat-label">{label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Typing dots ───────────────────────────────────────────────────────────
+function TypingDots() {
+  return (
+    <div className="typing-dots">
+      <span /><span /><span />
+    </div>
+  );
+}
+
+// ── Main App ──────────────────────────────────────────────────────────────
 function App() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const scrollToBottom = () => {
+  const scrollToBottom = () =>
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, isLoading]);
+  useEffect(() => { scrollToBottom(); }, [messages, isLoading]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
+  const sendMessage = useCallback(async (text: string) => {
+    if (!text.trim() || isLoading) return;
 
-    const userMessage = input.trim();
+    const userMessage = text.trim();
     setInput('');
     setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setIsLoading(true);
@@ -53,97 +154,144 @@ function App() {
       while (!done) {
         const { value, done: doneReading } = await reader.read();
         done = doneReading;
-        
         if (value) {
           const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split('\n');
-          
-          for (const line of lines) {
+          for (const line of chunk.split('\n')) {
             if (line.startsWith('data: ') && line !== 'data: [DONE]') {
               try {
                 const data = JSON.parse(line.slice(6));
                 if (data.text) {
                   assistantMessage += data.text;
                   setMessages(prev => {
-                    const newMessages = [...prev];
-                    newMessages[newMessages.length - 1].content = assistantMessage;
-                    return newMessages;
+                    const next = [...prev];
+                    next[next.length - 1].content = assistantMessage;
+                    return next;
                   });
                 }
-              } catch (e) {
-                console.error('Error parsing SSE data', e);
-              }
+              } catch (_) {}
             }
           }
         }
       }
-    } catch (error) {
-      console.error('Chat error:', error);
+    } catch {
       setMessages(prev => [
         ...prev,
-        { role: 'assistant', content: 'Sorry, I encountered an error. Please try again later.' }
+        { role: 'assistant', content: '⚠️ Something went wrong. Please try again.' }
       ]);
     } finally {
       setIsLoading(false);
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [messages, isLoading]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    sendMessage(input);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage(input);
     }
   };
 
   return (
-    <div className="flex flex-col h-full max-w-4xl mx-auto bg-white shadow-xl min-h-screen">
-      <header className="bg-blue-600 text-white p-4 text-center sticky top-0 z-10 shadow-md">
-        <h1 className="text-2xl font-bold flex items-center justify-center gap-2">
-          <Bot size={28} />
-          Tarik Bhai AI
-        </h1>
-        <p className="text-blue-100 text-sm mt-1">Beyond Space • Beyond Time</p>
-      </header>
+    <>
+      {/* Animated background */}
+      <div className="nebula-bg">
+        <div className="nebula-orb" />
+        <div className="nebula-orb" />
+        <div className="nebula-orb" />
+      </div>
+      <StarField />
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-gray-50">
-        {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-gray-500 text-center p-8">
-            <Bot size={64} className="mb-4 text-blue-300" />
-            <h2 className="text-xl font-medium mb-2">Welcome to Tarik Bhai AI</h2>
-            <p className="max-w-md">Your ultimate researcher and omega knowledge guide. Ask me anything and I will provide deeply researched, exhaustive answers.</p>
+      {/* App shell */}
+      <div className="app-shell">
+
+        {/* Header */}
+        <header className="app-header glass-panel">
+          <div className="header-avatar">🤖</div>
+          <div className="header-info">
+            <h1>Tarik Bhai AI</h1>
+            <p>YOUR DIGITAL MENTOR • OMEGA KNOWLEDGE GUIDE</p>
           </div>
-        ) : (
-          messages.map((msg, idx) => (
-            <div key={idx} className={`flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-              <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${msg.role === 'user' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'}`}>
-                {msg.role === 'user' ? <User size={20} /> : <Bot size={20} />}
-              </div>
-              <div className={`flex-1 px-4 py-3 rounded-2xl max-w-[85%] shadow-sm ${msg.role === 'user' ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-white border border-gray-200 rounded-tl-none'}`}>
-                <div className={`prose ${msg.role === 'user' ? 'prose-invert max-w-none text-white' : 'max-w-none text-gray-800'}`}>
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {msg.content || (msg.role === 'assistant' ? '...' : '')}
-                  </ReactMarkdown>
+          <div className="header-status">
+            <div className="status-dot" />
+            Online
+          </div>
+        </header>
+
+        {/* Messages / Welcome */}
+        <div className="messages-area">
+          {messages.length === 0 ? (
+            <WelcomeScreen onSuggestion={s => { setInput(s); inputRef.current?.focus(); }} />
+          ) : (
+            messages.map((msg, idx) => (
+              <div key={idx} className={`message-row ${msg.role}`}>
+                <div className={`msg-avatar ${msg.role === 'user' ? 'user' : 'ai'}`}>
+                  {msg.role === 'user' ? '👤' : '🤖'}
+                </div>
+                <div className={`bubble ${msg.role === 'user' ? 'user' : 'ai'}`}>
+                  {msg.role === 'assistant' ? (
+                    <div className="prose max-w-none">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {msg.content || '...'}
+                      </ReactMarkdown>
+                    </div>
+                  ) : (
+                    msg.content
+                  )}
                 </div>
               </div>
-            </div>
-          ))
-        )}
-        <div ref={messagesEndRef} />
-      </div>
+            ))
+          )}
 
-      <div className="p-4 bg-white border-t border-gray-200 sticky bottom-0">
-        <form onSubmit={handleSubmit} className="flex gap-2 max-w-4xl mx-auto relative">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask Tarik Bhai AI anything..."
-            className="flex-1 p-3 pl-4 pr-12 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            disabled={isLoading}
-          />
-          <button
-            type="submit"
-            disabled={isLoading || !input.trim()}
-            className="absolute right-2 top-2 p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {isLoading ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
-          </button>
-        </form>
+          {/* Typing indicator */}
+          {isLoading && (
+            <div className="message-row">
+              <div className="msg-avatar ai">🤖</div>
+              <div className="bubble ai">
+                <TypingDots />
+              </div>
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input bar */}
+        <div className="input-bar glass-panel">
+          <form className="input-form" onSubmit={handleSubmit}>
+            <input
+              ref={inputRef}
+              type="text"
+              className="input-field"
+              placeholder="Ask Tarik Bhai AI anything…"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={isLoading}
+              autoFocus
+            />
+            <button
+              type="submit"
+              className="send-btn"
+              disabled={isLoading || !input.trim()}
+              aria-label="Send message"
+            >
+              {isLoading
+                ? <Loader2 size={18} className="animate-spin" />
+                : <Send size={18} />
+              }
+            </button>
+          </form>
+          <p className="input-hint">
+            Press Enter to send • Tarik Bhai AI · Beyond Space Beyond Time
+          </p>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
