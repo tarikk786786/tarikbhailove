@@ -1,7 +1,8 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { Menu, Info, Clock, Zap } from 'lucide-react';
+import { Menu, Info, Clock, Zap, Cpu } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { AboutModal } from './AboutModal';
+import { SystemInfoModal } from './SystemInfoModal';
 
 interface TopbarProps {
   onMenuClick: () => void;
@@ -21,6 +22,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
   const [time, setTime] = useState('');
   const [dateStr, setDateStr] = useState('');
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isSystemInfoOpen, setIsSystemInfoOpen] = useState(false);
   const [supportMessage, setSupportMessage] = useState('');
   const [supportTimeout, setSupportTimeout] = useState<NodeJS.Timeout | null>(null);
 
@@ -86,6 +88,14 @@ export function Topbar({ onMenuClick }: TopbarProps) {
           </div>
 
           <button 
+            onClick={() => setIsSystemInfoOpen(true)}
+            title="System Details"
+            className="flex items-center justify-center w-8 h-8 md:w-9 md:h-9 rounded-full text-cyan-400 hover:text-white transition-all bg-cyan-950/30 border border-cyan-500/30 hover:bg-cyan-900/50 hover:shadow-[0_0_15px_rgba(34,211,238,0.4)]"
+          >
+            <Cpu size={16} />
+          </button>
+
+          <button 
             onClick={() => setIsAboutOpen(true)}
             title="About Tarik Bhai"
             className="flex items-center justify-center w-8 h-8 md:w-9 md:h-9 rounded-full text-cyan-400 hover:text-white transition-all bg-cyan-950/30 border border-cyan-500/30 hover:bg-cyan-900/50 hover:shadow-[0_0_15px_rgba(34,211,238,0.4)]"
@@ -95,6 +105,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
         </div>
       </motion.header>
       
+      <SystemInfoModal isOpen={isSystemInfoOpen} onClose={() => setIsSystemInfoOpen(false)} />
       <AboutModal isOpen={isAboutOpen} onClose={() => setIsAboutOpen(false)} />
 
       <AnimatePresence>

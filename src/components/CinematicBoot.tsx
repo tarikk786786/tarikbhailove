@@ -2,9 +2,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useState, useEffect, useMemo } from 'react';
 
 const WORDS = [
-  "Artificial Intelligence", "Machine Learning", "Physics", "Astronomy",
+  "Limitless Knowledge", "Infinite Wisdom", "Physics", "Astronomy",
   "Cyber Security", "Programming", "Innovation", "Engineering",
-  "Science", "Research", "Knowledge", "Discovery",
+  "Science", "Research", "Deep Exploration", "Discovery",
   "Algorithms", "Mathematics", "Quantum Theory", "Space Exploration",
   "Design", "Automation", "Creativity", "Future Concepts"
 ];
@@ -15,9 +15,9 @@ const PREVIEWS = [
   "✓ Ideas Organized",
   "✓ New Concepts Visualized",
   "✓ Information Streams Active",
-  "✓ Neural Network Expanding",
+  "✓ Neural Matrix Expanding",
   "✓ Creative Workspace Ready",
-  "✓ Intelligence Matrix Stable"
+  "✓ Core Intelligence Stable"
 ];
 
 const COLORS = [

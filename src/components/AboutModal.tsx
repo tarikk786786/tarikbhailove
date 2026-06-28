@@ -56,7 +56,7 @@ Every interaction expands this neural architecture.
 
 Every challenge is an opportunity to execute the extraordinary.
 
-Powered by advanced artificial intelligence.
+Powered by advanced computational mastery.
 
 Driven by an insatiable curiosity.
 
@@ -197,7 +197,7 @@ export function AboutModal({ isOpen, onClose }: AboutModalProps) {
                     onClick={() => setActiveTab('ai')}
                     className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${activeTab === 'ai' ? 'bg-accent text-black' : 'text-text-dim hover:text-white'}`}
                   >
-                    About AI
+                    About System Core
                   </button>
                   <button
                     onClick={() => setActiveTab('me')}
