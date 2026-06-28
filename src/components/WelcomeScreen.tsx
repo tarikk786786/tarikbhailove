@@ -60,7 +60,7 @@ function getGreeting(): string {
   if (hour < 5) return '🌙 Good Night';
   if (hour < 12) return '🌅 Good Morning';
   if (hour < 17) return '☀️ Good Afternoon';
-  if (hour < 21) return '🌆 Good Evening';
+  if (hour < 23) return '🌆 Good Evening';
   return '🌙 Good Night';
 }
 

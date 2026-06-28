@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Copy, Check, RotateCcw } from 'lucide-react';
@@ -25,7 +25,7 @@ function formatTimestamp(ts?: number) {
   return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
 }
 
-// Copy button for code blocks and AI messages
+// Copy button for AI messages
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
 
@@ -34,7 +34,19 @@ function CopyButton({ text }: { text: string }) {
       await navigator.clipboard.writeText(text);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch { }
+    } catch {
+      // Fallback for older browsers
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   return (
@@ -50,7 +62,7 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
-// Random thinking messages
+// Thinking messages
 const THINKING_MESSAGES = [
   '🧠 Thinking deeply…',
   '🔍 Researching your question…',
@@ -60,12 +72,16 @@ const THINKING_MESSAGES = [
 ];
 
 export function ChatMessages({ messages, isLoading, messagesEndRef, onRetry }: ChatMessagesProps) {
-  const thinkingMsg = useRef(THINKING_MESSAGES[Math.floor(Math.random() * THINKING_MESSAGES.length)]);
+  const thinkingMsg = useRef(THINKING_MESSAGES[0]);
+  const wasLoading = useRef(false);
 
-  // Pick new thinking message when loading starts
-  if (isLoading) {
-    thinkingMsg.current = THINKING_MESSAGES[Math.floor(Math.random() * THINKING_MESSAGES.length)];
-  }
+  // Only pick new thinking message when loading transitions from false → true
+  useEffect(() => {
+    if (isLoading && !wasLoading.current) {
+      thinkingMsg.current = THINKING_MESSAGES[Math.floor(Math.random() * THINKING_MESSAGES.length)];
+    }
+    wasLoading.current = isLoading;
+  }, [isLoading]);
 
   return (
     <>

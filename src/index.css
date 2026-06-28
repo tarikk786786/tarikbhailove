@@ -607,6 +607,8 @@ body {
   transition: all 0.3s var(--ease-out);
   text-align: left;
   backdrop-filter: blur(12px);
+  font-family: var(--font-sans);
+  color: inherit;
 }
 
 .cap-card:hover {
@@ -1021,6 +1023,15 @@ body {
 @keyframes fadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
 /* ── Responsive ── */
