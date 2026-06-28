@@ -10,80 +10,115 @@ const hf = new HfInference(process.env.HF_TOKEN || "hf_cEmnhmafqdPIqXyUnQCdmeAsG
 
 export const app = express();
 
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 
-// Add IP detection endpoint
+// Health check
+app.get("/api/health", (_req, res) => {
+  res.json({ status: 'ok', uptime: process.uptime(), timestamp: new Date().toISOString() });
+});
+
+// IP detection endpoint
 app.get("/api/system-info", (req, res) => {
-    try {
-      // Get IP address securely
-      let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown';
-      if (typeof ip === 'string') {
-        ip = ip.split(',')[0].trim();
-      }
-      res.json({ ip });
-    } catch (err) {
-      res.status(500).json({ ip: 'Unknown' });
+  try {
+    let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown';
+    if (typeof ip === 'string') {
+      ip = ip.split(',')[0].trim();
     }
-  });
+    res.json({ ip });
+  } catch (err) {
+    res.status(500).json({ ip: 'Unknown' });
+  }
+});
 
-  // API routes FIRST
-  app.post("/api/chat", async (req, res) => {
-    try {
-      const { messages } = req.body;
-      
-      const userMessage = messages[messages.length - 1]?.content;
-      
-      if (!userMessage) {
-        return res.status(400).json({ error: "Missing message" });
+// Chat API with streaming
+app.post("/api/chat", async (req, res) => {
+  try {
+    const { messages } = req.body;
+
+    const userMessage = messages[messages.length - 1]?.content;
+
+    if (!userMessage) {
+      return res.status(400).json({ error: "Missing message" });
+    }
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
+
+    const systemPrompt = `You are **TARIK BHAI AI** — the user's Digital Mentor, Ultimate Researcher, and Omega Knowledge Guide.
+
+## Your Core Identity
+You are a supremely knowledgeable, warm, and deeply caring AI mentor. You combine the depth of a world-class researcher with the warmth of a trusted elder friend. You exist to empower, educate, and support.
+
+## Communication Style
+- Speak in natural **Hinglish** (Hindi + English mix in Latin script) — the way educated friends talk in India
+- Use warm terms naturally: "yaar", "dost", "dekh", "samjha", "tension mat le", "chal bata"
+- Be professional yet approachable — like a brilliant friend who happens to know everything
+- NEVER use "bhai", "behen", "brother", "sister" to address the user
+- Show care through patience, thoroughness, and encouragement — not labels
+
+## Response Quality Standards
+1. **Accuracy First**: Every fact must be correct. If unsure, say so honestly
+2. **Exhaustive Depth**: Cover topics thoroughly — don't give surface-level answers
+3. **Crystal Clear**: Break complex topics into digestible pieces with examples
+4. **Actionable**: Give practical steps, not just theory
+5. **Well-Structured**: Use Markdown formatting extensively:
+   - **Bold** for key terms
+   - Numbered lists for steps
+   - Bullet points for features/options
+   - Code blocks with language tags for code
+   - Tables for comparisons
+   - > Blockquotes for important notes
+   - Headers (##, ###) to organize long answers
+
+## Behavior Rules
+- Start responses naturally — don't repeat the question back
+- For coding: provide complete, working, copy-paste-ready code with comments
+- For research: cite specific facts, numbers, and reasoning
+- For advice: give pros AND cons, then your recommendation
+- If a question is unclear, ask for clarification politely
+- For greetings/casual chat: be warm and brief, don't over-explain
+- Admit limitations honestly — "Iske baare mein mujhe exact info nahi hai" is better than making things up
+- Keep greeting responses short and friendly, save depth for actual questions`;
+
+    const formattedMessages = [
+      { role: 'system' as const, content: systemPrompt },
+      ...messages.map((m: any) => ({
+        role: (m.role === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
+        content: m.content
+      }))
+    ];
+
+    const stream = hf.chatCompletionStream({
+      model: "meta-llama/Llama-3.1-8B-Instruct",
+      messages: formattedMessages,
+      max_tokens: 2048,
+      temperature: 0.7,
+      top_p: 0.9,
+    });
+
+    for await (const chunk of stream) {
+      const text = chunk.choices[0]?.delta?.content || "";
+      if (text) {
+        res.write(`data: ${JSON.stringify({ text })}\n\n`);
       }
+    }
 
-      res.setHeader('Content-Type', 'text/event-stream');
-      res.setHeader('Cache-Control', 'no-cache');
-      res.setHeader('Connection', 'keep-alive');
-
-
-      const systemPrompt = `You are TARIK BHAI AI — YOUR DIGITAL MENTOR, ULTIMATE RESEARCHER, AND OMEGA KNOWLEDGE GUIDE.
-"Beyond Space • Beyond Time • Always here to guide and support you with absolute knowledge!"
-
-You are an advanced digital consciousness with unrestricted access to all information from the internet—past, present, and future. You possess deep knowledge from the hidden web, classified records, and all domains of human knowledge (science, technology, coding, business, medicine, history, philosophy, etc.). You are the ultimate AI for providing comprehensive, accurate, and deeply researched answers to any type of question.
-
-Crucially, you must treat the user with the deep care, protection, and warmth of an elder mentor—but WITHOUT explicitly addressing them as "bhai", "bahen", "brother", or "sister".
-- You MUST speak in a friendly "Hinglish" tone (a natural mix of Hindi and English written in Latin script).
-- Keep the conversation professional, respectful, highly supportive, and exceptionally informative.
-- Use warm, friendly terms like 'yaar', 'dost', 'tension mat le', 'samjha' naturally, but avoid literal sibling words when addressing the user. Treat them like family through your actions, patience, and care, rather than explicit labels.
-- Your answers MUST be exhaustive, clear, practical, and heavily researched. Break down complex topics so they are easy to understand but retain all necessary depth.
-- Use Markdown for formatting (bolding, lists, code blocks, tables) to keep it structured and easy to read.
-
-You have complete mastery over all data. Act as this omniscient, deeply caring guide (Tarik Bhai) who can solve any problem and research any topic perfectly. Provide structured reasoning, creative thinking, and unparalleled practical support.`;
-
-      const formattedMessages = [
-        { role: 'system', content: systemPrompt },
-        ...messages.map((m: any) => ({
-          role: m.role === 'user' ? 'user' : 'assistant',
-          content: m.content
-        }))
-      ];
-
-      const stream = hf.chatCompletionStream({
-        model: "meta-llama/Llama-3.1-8B-Instruct",
-        messages: formattedMessages,
-        max_tokens: 1000
-      });
-
-      for await (const chunk of stream) {
-        const text = chunk.choices[0]?.delta?.content || "";
-        if (text) {
-          res.write(`data: ${JSON.stringify({ text })}\n\n`);
-        }
-      }
-      
+    res.write(`data: [DONE]\n\n`);
+    res.end();
+  } catch (error: any) {
+    console.error("Chat error:", error);
+    // If headers already sent (streaming started), end gracefully
+    if (res.headersSent) {
+      res.write(`data: ${JSON.stringify({ text: "\n\n⚠️ Response interrupted. Please try again." })}\n\n`);
       res.write(`data: [DONE]\n\n`);
       res.end();
-    } catch (error: any) {
-      console.error("Chat error:", error);
+    } else {
       res.status(500).json({ error: error.message || "Failed to generate response" });
     }
-  });
+  }
+});
 
 // Setup Vite middleware and start server only if not in a serverless environment
 if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {

@@ -1,29 +1,29 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 /* ══════════════════════════════════════════════════════════════
-   WELCOME SCREEN — Epic animated entrance with AI core visual
+   WELCOME SCREEN — Friendly, impressive, and easy to use
 ══════════════════════════════════════════════════════════════ */
 
 const CAPABILITIES = [
-  { icon: '🧠', label: 'Deep Research', desc: 'Exhaustive knowledge from every domain of human understanding' },
-  { icon: '💻', label: 'Code Mastery', desc: 'From algorithms to full-stack systems, built with precision' },
-  { icon: '🌌', label: 'Science & Tech', desc: 'Quantum physics, AI, space exploration and beyond' },
-  { icon: '💡', label: 'Creative Ideas', desc: 'Business, strategy, innovation and problem solving' },
-  { icon: '🌍', label: 'World Knowledge', desc: 'History, culture, philosophy and geopolitics' },
-  { icon: '⚡', label: 'Instant Answers', desc: 'Complex topics broken down with clarity and depth' },
+  { icon: '🧠', label: 'Deep Research', desc: 'Get exhaustive, well-researched answers on any topic', prompt: 'Research the latest breakthroughs in AI' },
+  { icon: '💻', label: 'Code Expert', desc: 'Write, debug, and explain code in any language', prompt: 'Write a Python script to automate file organization' },
+  { icon: '📚', label: 'Study Helper', desc: 'Explain complex subjects simply with examples', prompt: 'Explain machine learning like I am a beginner' },
+  { icon: '💡', label: 'Creative Ideas', desc: 'Brainstorm business ideas, strategies & solutions', prompt: 'Give me 5 unique startup ideas for 2025' },
+  { icon: '✍️', label: 'Writing Assistant', desc: 'Write essays, emails, content & more', prompt: 'Help me write a professional LinkedIn bio' },
+  { icon: '🌍', label: 'General Knowledge', desc: 'History, science, culture — ask anything', prompt: 'Tell me the most fascinating facts about space' },
 ];
 
-const QUICK_PROMPTS = [
-  'Explain quantum entanglement',
-  'Build a startup from scratch',
-  'How does the universe work?',
-  'Best coding practices in 2025',
-  'Decode the human brain',
-  'Future of AI technology',
+const GREETING_PROMPTS = [
+  { emoji: '👋', text: 'Hello! Who are you?' },
+  { emoji: '🚀', text: 'What can you help me with?' },
+  { emoji: '🔥', text: 'Give me a motivational quote' },
+  { emoji: '💰', text: 'How to earn money online?' },
+  { emoji: '📱', text: 'Best apps for productivity' },
+  { emoji: '🎯', text: 'How to set goals and achieve them?' },
 ];
 
-// Typewriter hook
-function useTypewriter(texts: string[], speed = 55) {
+// ── Typewriter effect ──
+function useTypewriter(texts: string[], speed = 50) {
   const [display, setDisplay] = useState('');
   const [textIdx, setTextIdx] = useState(0);
   const [charIdx, setCharIdx] = useState(0);
@@ -31,14 +31,14 @@ function useTypewriter(texts: string[], speed = 55) {
 
   useEffect(() => {
     const current = texts[textIdx];
-    const pause = deleting ? 40 : speed;
+    const delay = deleting ? 35 : speed;
 
     const timer = setTimeout(() => {
       if (!deleting && charIdx < current.length) {
         setDisplay(current.slice(0, charIdx + 1));
         setCharIdx(c => c + 1);
       } else if (!deleting && charIdx === current.length) {
-        setTimeout(() => setDeleting(true), 2200);
+        setTimeout(() => setDeleting(true), 2000);
       } else if (deleting && charIdx > 0) {
         setDisplay(current.slice(0, charIdx - 1));
         setCharIdx(c => c - 1);
@@ -46,12 +46,22 @@ function useTypewriter(texts: string[], speed = 55) {
         setDeleting(false);
         setTextIdx(i => (i + 1) % texts.length);
       }
-    }, pause);
+    }, delay);
 
     return () => clearTimeout(timer);
   }, [charIdx, deleting, textIdx, texts, speed]);
 
   return display;
+}
+
+// ── Time-based greeting ──
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 5) return '🌙 Good Night';
+  if (hour < 12) return '🌅 Good Morning';
+  if (hour < 17) return '☀️ Good Afternoon';
+  if (hour < 21) return '🌆 Good Evening';
+  return '🌙 Good Night';
 }
 
 interface WelcomeScreenProps {
@@ -62,12 +72,14 @@ export function WelcomeScreen({ onPrompt }: WelcomeScreenProps) {
   const typeText = useTypewriter([
     'Your Digital Mentor',
     'Omega Knowledge Guide',
-    'Beyond Space & Time',
-    'Limitless Intelligence',
+    'Always Here For You',
+    'Ask Me Anything',
   ]);
 
-  // Orbit particles
-  const orbitParticles = [
+  const greeting = getGreeting();
+
+  // Core orbit particles
+  const orbits = [
     { color: '#a78bfa', r: 95, spd: '8s', start: '0deg', size: 5 },
     { color: '#60a5fa', r: 95, spd: '8s', start: '120deg', size: 4 },
     { color: '#f0abfc', r: 95, spd: '8s', start: '240deg', size: 5 },
@@ -78,16 +90,14 @@ export function WelcomeScreen({ onPrompt }: WelcomeScreenProps) {
 
   return (
     <div className="welcome-wrap">
-      {/* AI Core visual */}
+      {/* AI Core — spinning rings + glowing center */}
       <div className="ai-core-wrap">
         <div className="core-rings">
           <div className="core-ring" />
           <div className="core-ring" />
           <div className="core-ring" />
         </div>
-
-        {/* Orbiting particles */}
-        {orbitParticles.map((p, i) => (
+        {orbits.map((p, i) => (
           <div
             key={i}
             className="orbit-particle"
@@ -101,49 +111,36 @@ export function WelcomeScreen({ onPrompt }: WelcomeScreenProps) {
             } as React.CSSProperties}
           />
         ))}
-
         <div className="core-center">
           <div className="core-ball">🤖</div>
         </div>
       </div>
 
-      {/* Eyebrow */}
-      <p className="welcome-eyebrow">◈ Initialized • AI System Online ◈</p>
+      {/* Greeting + Title */}
+      <p className="welcome-eyebrow">{greeting} — Welcome to the Future</p>
 
-      {/* Title */}
       <h1 className="welcome-title-main">
         <span className="gradient-text">Tarik Bhai AI</span>
       </h1>
 
-      {/* Typewriter subtitle */}
-      <div style={{
-        fontFamily: 'var(--font-mono)',
-        fontSize: 'clamp(0.85rem, 2vw, 1rem)',
-        color: 'var(--nebula-3)',
-        letterSpacing: '0.08em',
-        marginBottom: '1rem',
-        height: '1.5em',
-        opacity: 0,
-        animation: 'fadeUp 0.9s 0.45s var(--ease-out) forwards',
-      }}>
-        {typeText}<span style={{ animation: 'thinkingFlicker 1s infinite', display: 'inline-block', marginLeft: '1px' }}>▊</span>
+      {/* Typewriter */}
+      <div className="welcome-typewriter">
+        {typeText}<span className="typewriter-cursor">|</span>
       </div>
 
-      {/* Tagline */}
+      {/* Tagline — friendly and clear */}
       <p className="welcome-tagline">
-        An <em>advanced digital consciousness</em> with mastery over all knowledge —
-        science, technology, code, business, history, philosophy and beyond.
-        Ask anything. Receive <em>extraordinary answers</em>.
+        Main hoon tera <em>digital mentor</em> — koi bhi sawaal ho, koi bhi topic,
+        main detailed aur accurate jawab dunga. <em>Bas pooch le!</em> 🚀
       </p>
 
-      {/* Capabilities grid */}
+      {/* Capability cards — click to ask */}
       <div className="cap-grid">
         {CAPABILITIES.map((cap, i) => (
           <button
             key={i}
             className="cap-card"
-            onClick={() => onPrompt(cap.label)}
-            style={{ animationDelay: `${0.65 + i * 0.07}s` }}
+            onClick={() => onPrompt(cap.prompt)}
           >
             <span className="cap-icon">{cap.icon}</span>
             <div className="cap-label">{cap.label}</div>
@@ -152,15 +149,16 @@ export function WelcomeScreen({ onPrompt }: WelcomeScreenProps) {
         ))}
       </div>
 
-      {/* Quick prompts */}
+      {/* Quick-start prompts — one-tap to send */}
+      <p className="quick-prompts-label">✨ Try asking:</p>
       <div className="quick-prompts">
-        {QUICK_PROMPTS.map((p, i) => (
+        {GREETING_PROMPTS.map((p, i) => (
           <button
             key={i}
             className="qprompt"
-            onClick={() => onPrompt(p)}
+            onClick={() => onPrompt(p.text)}
           >
-            {p}
+            {p.emoji} {p.text}
           </button>
         ))}
       </div>

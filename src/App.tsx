@@ -4,23 +4,23 @@ import { CursorGlow }        from './components/CursorGlow';
 import { WelcomeScreen }     from './components/WelcomeScreen';
 import { ChatMessages, type Message } from './components/ChatMessages';
 import { InputBar }          from './components/InputBar';
+import { Trash2 } from 'lucide-react';
 
 /* ══════════════════════════════════════════════════════════════
    TARIK BHAI AI — Main Application
-   Beyond Space • Beyond Time • Beyond Comprehension
+   Best • Easy • Advanced • Accurate • Friendly
 ══════════════════════════════════════════════════════════════ */
 
 export default function App() {
   const [messages, setMessages]   = useState<Message[]>([]);
   const [input, setInput]         = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [sessionId]               = useState(() => Math.random().toString(36).slice(2, 8).toUpperCase());
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef       = useRef<HTMLInputElement>(null);
   const msgsAreaRef    = useRef<HTMLDivElement>(null);
 
-  // Smooth scroll to bottom
+  // Scroll to bottom
   const scrollToBottom = useCallback(() => {
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -29,13 +29,14 @@ export default function App() {
 
   useEffect(() => { scrollToBottom(); }, [messages, isLoading, scrollToBottom]);
 
-  // Core send function
+  // Send message
   const sendMessage = useCallback(async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || isLoading) return;
 
     setInput('');
-    setMessages(prev => [...prev, { role: 'user', content: trimmed }]);
+    const userMsg: Message = { role: 'user', content: trimmed, timestamp: Date.now() };
+    setMessages(prev => [...prev, userMsg]);
     setIsLoading(true);
 
     try {
@@ -54,8 +55,9 @@ export default function App() {
       const decoder = new TextDecoder();
       let done = false;
       let ai   = '';
+      const aiTimestamp = Date.now();
 
-      setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: '', timestamp: aiTimestamp }]);
 
       while (!done) {
         const { value, done: doneReading } = await reader.read();
@@ -71,7 +73,7 @@ export default function App() {
                 ai += data.text;
                 setMessages(prev => {
                   const next = [...prev];
-                  next[next.length - 1] = { role: 'assistant', content: ai };
+                  next[next.length - 1] = { role: 'assistant', content: ai, timestamp: aiTimestamp };
                   return next;
                 });
               }
@@ -85,7 +87,8 @@ export default function App() {
         ...prev,
         {
           role: 'assistant',
-          content: '⚠️ **Connection disrupted.** The knowledge matrix encountered an error. Please try again.\n\n*Tarik Bhai AI systems are self-healing and will be ready momentarily.*',
+          content: '⚠️ **Oops! Kuch gadbad ho gayi.** Please try again.\n\n*Server se connection lost ho gaya. Ek baar phir se try kar.*',
+          timestamp: Date.now(),
         },
       ]);
     } finally {
@@ -94,20 +97,52 @@ export default function App() {
     }
   }, [messages, isLoading]);
 
+  // Retry last message
+  const handleRetry = useCallback((msgIndex: number) => {
+    // Find the last user message before this AI response
+    let lastUserMsg = '';
+    for (let i = msgIndex - 1; i >= 0; i--) {
+      if (messages[i].role === 'user') {
+        lastUserMsg = messages[i].content;
+        break;
+      }
+    }
+    if (!lastUserMsg) return;
+
+    // Remove the last AI response
+    setMessages(prev => prev.slice(0, msgIndex));
+
+    // Resend
+    setTimeout(() => sendMessage(lastUserMsg), 100);
+  }, [messages, sendMessage]);
+
+  // Clear chat
+  const clearChat = () => {
+    if (messages.length === 0) return;
+    setMessages([]);
+    setInput('');
+    inputRef.current?.focus();
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     sendMessage(input);
   };
 
+  // Also send when clicking welcome prompt buttons
+  const handlePrompt = useCallback((text: string) => {
+    sendMessage(text);
+  }, [sendMessage]);
+
   return (
     <>
-      {/* Layer 0: Cosmic animated background */}
+      {/* Cosmic animated background */}
       <CosmicBackground />
 
-      {/* Layer 1: Custom cursor */}
+      {/* Custom cursor (desktop only) */}
       <CursorGlow />
 
-      {/* Layer 2: App shell */}
+      {/* App */}
       <div className="app-shell">
 
         {/* Header */}
@@ -119,32 +154,37 @@ export default function App() {
 
           <div className="header-info">
             <div className="header-title">Tarik Bhai AI</div>
-            <div className="header-sub">Beyond Space • Beyond Time • Omega Knowledge System</div>
+            <div className="header-sub">Your Digital Mentor • Always Here For You</div>
           </div>
 
           <div className="header-status">
-            <div className="model-badge">Llama-3.1</div>
             <div className="status-indicator">
               <div className="status-pulse" />
               Online
             </div>
+            {messages.length > 0 && (
+              <button
+                className="clear-btn"
+                onClick={clearChat}
+                title="Clear chat"
+                aria-label="Clear chat"
+              >
+                <Trash2 size={15} />
+              </button>
+            )}
           </div>
         </header>
 
         {/* Messages / Welcome */}
         <div className="messages-area" ref={msgsAreaRef}>
           {messages.length === 0 ? (
-            <WelcomeScreen
-              onPrompt={text => {
-                setInput(text);
-                setTimeout(() => inputRef.current?.focus(), 50);
-              }}
-            />
+            <WelcomeScreen onPrompt={handlePrompt} />
           ) : (
             <ChatMessages
               messages={messages}
               isLoading={isLoading}
               messagesEndRef={messagesEndRef as React.RefObject<HTMLDivElement>}
+              onRetry={handleRetry}
             />
           )}
         </div>
@@ -156,6 +196,7 @@ export default function App() {
           isLoading={isLoading}
           inputRef={inputRef as React.RefObject<HTMLInputElement>}
           onSubmit={handleSubmit}
+          messageCount={messages.length}
         />
       </div>
     </>
